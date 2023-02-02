@@ -1,0 +1,68 @@
+
+/****** Object:  Table [dbo].[global_Dim_Times]    Script Date: 07/04/2012 19:25:21 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+SET ANSI_PADDING ON
+GO
+
+CREATE TABLE [dbo].[DimDate](
+	[time_Id] [int] NOT NULL,
+	[time_Date_Id] [int] NULL,
+	[time_Key_Year_Month_Day_Hour_Native] [int] NULL,
+	[time_Key_Year_Month_Day_Native] [int] NULL,
+	[time_Key_Year_Week_Native] [int] NULL,
+	[time_Key_Year_Month_Native] [int] NULL,
+	[time_Key_Year_Half_Native] [smallint] NULL,
+	[time_Key_Year_Season_Native] [smallint] NULL,
+	[time_Key_Year_Native] [smallint] NULL,
+	[time_Key_Year_Month_Day_Hour] [bigint] NULL,
+	[time_Key_Year_Month_Day] [int] NULL,
+	[time_Key_Year_Week] [int] NULL,
+	[time_Key_Year_Month] [int] NULL,
+	[time_Key_Year_Half] [smallint] NULL,
+	[time_Key_Year_Season] [smallint] NULL,
+	[time_Key_Year] [smallint] NULL,
+	[time_Title_Year_Month_Day_Hour] [nvarchar](128) NULL,
+	[time_Title_Year_Month_Day] [nvarchar](64) NULL,
+	[time_Title_Year_Week] [nvarchar](64) NULL,
+	[time_Title_Year_Month] [nvarchar](64) NULL,
+	[time_Title_Year_Half] [nvarchar](64) NULL,
+	[time_Title_Year_Season] [nvarchar](64) NULL,
+	[time_Title_Year] [nvarchar](16) NULL,
+	[time_Year_Native] [smallint] NULL,
+	[time_Month_Native] [tinyint] NULL,
+	[time_Month_Native_2Char] [char](2) NULL,
+	[time_Day_Native] [tinyint] NULL,
+	[time_Day_Native_2Char] [char](2) NULL,
+	[time_Hour] [tinyint] NULL,
+	[time_Hour_2Char] [char](2) NULL,
+	[time_Date_Name] [nvarchar](128) NULL,
+	[time_Year] [smallint] NULL,
+	[time_Month_Of_Year] [tinyint] NULL,
+	[time_Month_Of_Year_2Char] [char](2) NULL,
+	[time_Month_Of_Season] [tinyint] NULL,
+	[time_Month_Name] [nvarchar](32) NULL,
+	[time_Day_Of_Year] [smallint] NULL,
+	[time_Day_Of_Month] [tinyint] NULL,
+	[time_Day_Of_Month_2Char] [char](2) NULL,
+	[time_Day_Of_Week] [tinyint] NULL,
+	[time_Day_Of_Week_Name] [nvarchar](128) NULL,
+	[time_Week_Of_Year] [tinyint] NULL,
+	[time_Season_Of_Year] [tinyint] NULL,
+	[time_Season_Name] [nvarchar](32) NULL,
+	[time_Half_Of_Year] [tinyint] NULL,
+	[time_Half_Of_Year_Name] [nvarchar](32) NULL,
+ CONSTRAINT [PK_DimDate] PRIMARY KEY CLUSTERED 
+(
+	[time_Id] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+
+SET ANSI_PADDING OFF
+GO
