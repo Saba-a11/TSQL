@@ -1,0 +1,180 @@
+
+DECLARE @YearStart	smallint
+DECLARE @YearEnd	smallint
+
+DECLARE @DateStart	datetime
+DECLARE @DateEnd	datetime
+
+DECLARE @mDate		datetime
+DECLARE @mYear		smallint
+DECLARE @mMonth		tinyint
+DECLARE @mDay		tinyint
+
+DECLARE @sDate		char(10)
+DECLARE @sYear		smallint
+DECLARE @sMonth		tinyint
+DECLARE @sDay		tinyint
+
+DECLARE @Hour		tinyint
+
+DECLARE @sYearCH	char(4)
+DECLARE @sMonthCH	char(2)
+DECLARE @sDayCH		char(2)
+
+DECLARE @HourCH		char(2)
+
+DECLARE @sDayOfYear		smallint
+DECLARE @mDayOfYear		smallint
+DECLARE @sWeekOfYear	tinyint
+DECLARE @mWeekOfYear	tinyint
+DECLARE @sDayOfWeek		tinyint
+DECLARE @mDayOfWeek		tinyint
+
+
+DECLARE @sMonthName		nvarchar(32)
+DECLARE @sSeasonName	nvarchar(32)
+DECLARE @sHalfYearName	nvarchar(32)
+DECLARE @sDayOfWeekName	nvarchar(32)
+
+DECLARE @FirstDayOfYearWeekDay tinyint
+ 
+-- تنظیم سالهایی که می خواهیم در بعد زمان ثبت شوند
+--------------------------------------------------
+SET @YearStart	= 1360
+SET @YearEnd	= 1440
+--------------------------------------------------
+
+SET @DateStart = dbo.ShamsiToMiladi (CAST(@YearStart AS varchar(4)) + '/01/01')
+SET @DateEnd = dbo.ShamsiToMiladi (CAST(@YearEnd+1 AS varchar(4)) + '/01/01')
+
+SET @mDate = @DateStart
+
+WHILE @mDate < @DateEnd
+BEGIN
+	SET @mYear = DATEPART(yy , @mDate)
+	SET @mMonth = DATEPART(mm , @mDate)
+	SET @mDay = DATEPART(dd , @mDate)
+	
+	SET @sDate = dbo.MiladiTOShamsi(@mDate)	
+	SET @sDay = CAST (RIGHT (@sDate , 2) AS smallint)
+	SET @sMonth = CAST (SUBSTRING(@sDate , 6,2) AS smallint)
+	SET @sYear = CAST (LEFT(@sDate , 4) AS smallint)
+
+	SET @sDayCH = RIGHT (@sDate , 2) 
+	SET @sMonthCH = SUBSTRING(@sDate , 6,2) 
+	SET @sYearCH = LEFT(@sDate , 4)
+		
+	SET @mDayOfWeek =  DATEPART (dw,@mDate) 
+	SET @sDayOfWeek =  DATEPART (dw,@mDate) +1
+	IF @sDayOfWeek > 7 
+		 SET @sDayOfWeek = @sDayOfWeek - 7
+	
+	SET @mDayOfYear = DATEPART (dy ,@mDate)
+	IF (@sMonth = 1) AND (@sDay = 1)
+	BEGIN 
+		SET @sDayOfYear =  1
+		SET @FirstDayOfYearWeekDay = @sDayOfWeek		
+	END
+	ELSE
+	BEGIN
+		SET @sDayOfYear = @sDayOfYear + 1
+	END
+	
+	--print @sDayOfYear
+	--print @FirstDayOfYearWeekDay
+	
+	SET @sMonthName = 
+		CASE @sMonth 
+		WHEN 1 THEN N'فروردين'
+		WHEN 2 THEN N'ارديبهشت'
+		WHEN 3 THEN N'خرداد'
+		WHEN 4 THEN N'تير'
+		WHEN 5 THEN N'مرداد'
+		WHEN 6 THEN N'شهريور'
+		WHEN 7 THEN N'مهر'
+		WHEN 8 THEN N'آبان'
+		WHEN 9 THEN N'آذر'
+		WHEN 10 THEN N'دي'
+		WHEN 11 THEN N'بهمن'
+		WHEN 12 THEN N'اسفند'
+		END
+		
+	SET @sDayOfWeekName = 
+		CASE @sDayOfWeek
+		WHEN 1 THEN N'شنبه'
+		WHEN 2 THEN N'يکشنبه'
+		WHEN 3 THEN N'دوشنبه'
+		WHEN 4 THEN N'سه شنبه'
+		WHEN 5 THEN N'چهار شنبه'
+		WHEN 6 THEN N'پنج شنبه'
+		WHEN 7 THEN N'جمعه'
+		END		
+
+	SET @sSeasonName = 
+		CASE CEILING(CAST(@sMonth AS float) / 3 ) 
+		WHEN 1 THEN N'سه ماهه اول'
+		WHEN 2 THEN N'سه ماهه دوم'
+		WHEN 3 THEN N'سه ماهه سوم'
+		WHEN 4 THEN N'سه ماهه چهارم'
+		END		
+	
+	SET @sHalfYearName = 
+		CASE CEILING(CAST(@sMonth AS float) / 6 ) 
+		WHEN 1 THEN N'نيمسال اول'
+		WHEN 2 THEN N'نيمسال دوم'
+	END		
+
+	SET @mWeekOfYear =  DATEPART (ww , @mDate)
+	SET @sWeekOfYear =  CEILING( (CAST(@sDayOfYear AS float)+ CAST(@FirstDayOfYearWeekDay AS float)-1)  / 7)
+	
+	SET @Hour = 1
+  -- اگر می خواهیم بازای هر روز فقط یک رکورد ایجاد شود مقدار را 1 و اگر بخواهیم بازای هر ساعت روز یک رورد ایجاد شود مقدار را 24 قرار می دهیم
+	WHILE @Hour <= 24
+	BEGIN		
+		SET @HourCH =  REPLICATE ('0' , 2 - LEN(LTRIM(CAST(@Hour AS varchar(2)))) )  + CAST(@Hour AS varchar(2))
+		
+		INSERT INTO [global_Dim_Times](
+			[time_Id],[time_Date_Id],[time_Key_Year_Month_Day_Hour_Native],[time_Key_Year_Month_Day_Native],
+			[time_Key_Year_Week_Native],[time_Key_Year_Month_Native],[time_Key_Year_Half_Native],
+			[time_Key_Year_Season_Native],[time_Key_Year_Native],[time_Key_Year_Month_Day_Hour],
+			[time_Key_Year_Month_Day],[time_Key_Year_Week],[time_Key_Year_Month],[time_Key_Year_Half],
+			[time_Key_Year_Season],[time_Key_Year],[time_Title_Year_Month_Day_Hour],[time_Title_Year_Month_Day],
+			[time_Title_Year_Week],[time_Title_Year_Month],[time_Title_Year_Half],[time_Title_Year_Season],
+			[time_Title_Year],[time_Year_Native],[time_Month_Native],[time_Month_Native_2Char],
+			[time_Day_Native],[time_Day_Native_2Char],[time_Hour],[time_Hour_2Char],[time_Date_Name],[time_Year],
+			[time_Month_Of_Year],[time_Month_Of_Year_2Char],[time_Month_Of_Season],[time_Month_Name],
+			[time_Day_Of_Year],[time_Day_Of_Month],[time_Day_Of_Month_2Char],[time_Day_Of_Week],[time_Day_Of_Week_Name],
+			[time_Week_Of_Year],[time_Season_Of_Year],[time_Season_Name],[time_Half_Of_Year],[time_Half_Of_Year_Name]
+		)
+		VALUES
+		(
+			CAST(@mDate AS int) * 100 + @Hour ,CAST(@mDate AS int) , 
+			CAST(@mYear  * 1000000	+ @mMonth * 10000	+ @mDay * 100 + @Hour  AS BIGINT),
+			@mYear  * 10000		+ @mMonth * 100		+ @mDay  ,
+			@mYear  * 100		+ @mWeekOfYear 	,
+			@mYear  * 100		+ @mMonth ,
+			@mYear  * 10		+ CEILING(CAST(@mMonth AS float) / 6 ) ,
+			@mYear  * 10		+ CEILING(CAST(@mMonth AS float) / 3 )  ,
+			@mYear  ,
+			CAST(@sYear  * 1000000	+ @sMonth * 10000	+ @sDay * 100 + @Hour AS BIGINT) ,
+			@sYear  * 10000		+ @sMonth * 100		+ @sDay  ,
+			@sYear  * 100		+ @sWeekOfYear 	,
+			@sYear  * 100		+ @sMonth ,
+			@sYear  * 10		+ CEILING(CAST(@sMonth AS float) / 6 ) ,
+			@sYear  * 10		+ CEILING(CAST(@sMonth AS float) / 3 )  ,
+			@sYear  ,			
+			N'ساعت ' + CAST(@Hour AS nvarchar(2))+ N' ' + N'روز' + N' ' + @sDate ,
+			@sDate ,N'هفته ' + CAST(@sDayOfWeek AS nvarchar(2))+ N' سال ' + @sYearCH ,
+			@sMonthName + N' ' + @sYearCH , @sHalfYearName + N' ' + @sYearCH ,@sSeasonName + N' ' + @sYearCH  , 
+			N'سال ' + @sYearCH , @sYear ,@sMonth ,@sMonthCH  ,@sDay ,@sDayCH ,@Hour ,@HourCH , 
+			N'روز' + CAST (@sDay AS nvarchar(2)) + N' ' + @sMonthName + N' ' + @sYearCH, @sYear ,@sMonth ,@sMonthCH ,
+			CASE WHEN @sMonth % 3 = 0 THEN 3 ELSE @sMonth % 3 END, @sMonthName ,@sDayOfYear ,
+			@sDay ,@sDayCH ,@sDayOfWeek ,@sDayOfWeekName ,@sWeekOfYear,
+			CEILING(CAST(@sMonth AS float) / 3) , @sSeasonName ,
+			CEILING(CAST(@sMonth AS float) / 6 ) ,@sHalfYearName
+		)
+		SET @Hour = @Hour + 1
+	END
+	
+	SET @mDate = DATEADD(day , 1, @mDate )
+END
